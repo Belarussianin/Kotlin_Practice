@@ -1,3 +1,4 @@
+import GameData.Companion.gameModeToInt
 import GameData.Companion.indexIntoPosition
 import GameData.Companion.playerToCellState
 import GameData.Companion.standard_game_field
@@ -9,7 +10,7 @@ import GameData.GameMode
 import GameData.Player
 
 class Game(
-    private var field: Array<Array<GameCell>> = standard_game_field,
+    private val field: Array<Array<GameCell>> = standard_game_field,
     private var state: GameState = GameState.GAME,
     private var mode: GameMode = GameMode.THREE_TO_THREE,
     private var currentPlayer: Player = Player.X
@@ -24,15 +25,18 @@ class Game(
     fun getCurrentPlayer() = currentPlayer
 
     fun reStart() {
-        field = standard_game_field
+        resetGameField()
         state = GameState.GAME
-        mode = GameMode.THREE_TO_THREE
         currentPlayer = Player.X
     }
 
-    //TODO
-    //TODO scalability,
-    // check different by mode
+    private fun resetGameField() {
+        field.forEach { row ->
+            row.forEach { cell ->
+                cell.state = GameCellState.EMPTY
+            }
+        }
+    }
 
     fun makeTurn(cellIndex: Int): Boolean {
         if (cellIndex in 0 until field.size * field.size) {
@@ -47,6 +51,11 @@ class Game(
                 updateGameState()
                 true
             } else {
+                println("Cell is not empty or game ended")
+                //TODO for console debug purpose, delete later
+                println("Enemy turn index: ")
+                makeTurn(input.nextInt())
+                //TODO
                 false
             }
         } else {
@@ -55,30 +64,40 @@ class Game(
         }
     }
 
-    private fun hasThreeInRow(cellToCheck: GameCellState): Boolean {
-        val threeInRow = arrayOf(
-            GameCell(cellToCheck),
-            GameCell(cellToCheck),
+    //TODO
+    //TODO scalability,
+    // MANY DIAGS CHECK, IF THERE IS MORE THAN 2 DIAGONALS
+
+    private fun hasWinState(cellToCheck: GameCellState): Boolean {
+        val rowToCheck = Array(gameModeToInt(mode)) {
             GameCell(cellToCheck)
-        )
+        }
         //Checking rows and columns
-        for (row in 0..2) {
-            if (field[row].contentEquals(threeInRow)) return true
-            if (arrayOf(field[0][row], field[1][row], field[2][row]).contentEquals(threeInRow)) return true
+        for (rowIndex in field.indices) {
+            //row
+            if (field[rowIndex].contains(rowToCheck)) return true
+            //column
+            if (Array(field.size) { columnIndex ->
+                field[columnIndex][rowIndex]
+                }.contains(rowToCheck)) {
+                return true
+            }
         }
         //Checking diagonals
-        if (arrayOf(
-                field[0][0],
-                field[1][1],
-                field[2][2]
-            ).contentEquals(threeInRow)
-        ) return true
-        if (arrayOf(
-                field[0][2],
-                field[1][1],
-                field[2][0]
-            ).contentEquals(threeInRow)
-        ) return true
+        //Main diag From top to bottom
+        if (Array(field.size) { index ->
+                field[index][index]
+            }.contains(rowToCheck)) {
+            return true
+        }
+        //Second diag from bottom to top
+        var secondDiag: Array<GameCell> = emptyArray()
+        for (rowIndex in field.indices.reversed()) {
+            secondDiag = secondDiag.plusElement(field[rowIndex][field.lastIndex - rowIndex])
+        }
+        if (secondDiag.contains(rowToCheck)) {
+            return true
+        }
         //If no three in a row, then return false
         return false
     }
@@ -89,8 +108,8 @@ class Game(
 
     private fun updateGameState() {
         //Checking X or O win
-        val xWinState = hasThreeInRow(GameCellState.CROSS)
-        val oWinState = hasThreeInRow(GameCellState.CIRCLE)
+        val xWinState = hasWinState(GameCellState.CROSS)
+        val oWinState = hasWinState(GameCellState.CIRCLE)
         println("X WINS: $xWinState, O WINS: $oWinState")
         //Checking isFull state
         var isFull = true

@@ -46,8 +46,6 @@ class GameBot(
                         indexToMove = closestEmptyMoveIndexOrNull() ?: indexToMove
                         //Move to closest empty corner if player have center
                         indexToMove = getClosestEmptyCornerOrNull() ?: indexToMove
-                        //TODO
-                        // f
                         //Check player move to center
                         indexToMove = getIndexToPreventPlayerWinOrNull() ?: indexToMove
                         //Check player win
@@ -138,12 +136,15 @@ class GameBot(
         return winRows
     }
 
+    //TODO
+    //TODO scalability,
+    // MANY DIAGS CHECK, IF THERE IS MORE THAN 2 DIAGONALS
+
     private fun getIndexToWinOrNull(playerToCheck: Player): Int? {
         val field = game.getField()
-        //Game have 2 modes 3x3 and 5x5 with 20x20 field
-        val checkSize = gameModeToInt(game.getMode())
         val cellStateToCheck: GameCellState = playerToCellState(playerToCheck)
-        val winRows = generateWinRows(checkSize, cellStateToCheck)
+        //Game have 2 modes to check 3x3 and 5x5
+        val winRows = generateWinRows(gameModeToInt(game.getMode()), cellStateToCheck)
         //Checking rows and columns
         for (rowIndex in field.indices) {
             for (winRowIndex in winRows.indices) {
@@ -160,16 +161,14 @@ class GameBot(
             }
         }
         //Checking diagonals
-        //From top to bottom
+        //Main diag From top to bottom
         val firstDiag: Array<GameCell> = Array(field.size) { index ->
             field[index][index]
         }
         //From bottom to top
-        val secondDiag: Array<GameCell> = emptyArray()
+        var secondDiag: Array<GameCell> = emptyArray()
         for (rowIndex in field.indices.reversed()) {
-            for (columnIndex in field.indices) {
-                secondDiag.plusElement(field[rowIndex][columnIndex])
-            }
+            secondDiag = secondDiag.plusElement(field[rowIndex][field.lastIndex - rowIndex])
         }
         for (winRowIndex in winRows.indices) {
             //first
