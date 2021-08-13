@@ -1,9 +1,11 @@
 import GameBotData.Mode
-import GameData.Companion.cellsPositionToIndex
+import GameData.Companion.gameModeToInt
 import GameData.Companion.playerToCellState
+import GameData.Companion.positionIntoIndex
 import GameData.Companion.switchPlayer
 import GameData.GameCellState
 import GameData.GameCell
+import GameData.GameMode
 import GameData.Player
 
 class GameBot(
@@ -14,12 +16,7 @@ class GameBot(
     fun makeMove(): Boolean {
         if (game.getCurrentPlayer() == botPlayer && game.getState() == GameData.GameState.GAME) {
             game.makeTurn(getIndexToMoveOrNull() ?: -1)
-            val field = game.getField()
-            println(
-                "\ncurrent field:\n${field[0].joinToString(", ", "[", "]")}\n" +
-                        field[1].joinToString(", ", "[", "]") + "\n" +
-                        field[2].joinToString(", ", "[", "]")
-            )
+            game.getField().print()
             return true
         }
         return false
@@ -31,7 +28,7 @@ class GameBot(
         var indexToMove: Int? = null
         //Checking all conditions only if game is play
         if (state == GameData.GameState.GAME) {
-            when(mode) {
+            when (mode) {
                 Mode.EASY -> {
                     //Move to closest empty cell
                     indexToMove = closestEmptyMoveIndexOrNull()
@@ -49,12 +46,17 @@ class GameBot(
                         indexToMove = closestEmptyMoveIndexOrNull() ?: indexToMove
                         //Move to closest empty corner if player have center
                         indexToMove = getClosestEmptyCornerOrNull() ?: indexToMove
+                        //TODO
+                        // f
                         //Check player move to center
                         indexToMove = getIndexToPreventPlayerWinOrNull() ?: indexToMove
                         //Check player win
                         indexToMove = getIndexToWinOrNull(switchPlayer(botPlayer)) ?: indexToMove
                         //Check center
-                        if (field[1][1].state == GameCellState.EMPTY) indexToMove = cellsPositionToIndex[1 to 1]
+                        if (game.getMode() == GameMode.THREE_TO_THREE) {
+                            if (field[1][1].state == GameCellState.EMPTY) indexToMove =
+                                positionIntoIndex(1 to 1, field.size)
+                        }
                         //Check bot win
                         indexToMove = getIndexToWinOrNull(botPlayer) ?: indexToMove
                     }
@@ -64,11 +66,15 @@ class GameBot(
         return indexToMove
     }
 
+    //TODO
+    //TODO scalability
+    //TODO
+
     private fun closestEmptyMoveIndexOrNull(): Int? {
         val field = game.getField()
         for (row in field.indices) {
             for (column in field[row].indices) {
-                if (field[row][column].state == GameCellState.EMPTY) return cellsPositionToIndex[row to column]
+                if (field[row][column].state == GameCellState.EMPTY) return positionIntoIndex(row to column, field.size)
             }
         }
         return null //If no empty cells
@@ -76,10 +82,10 @@ class GameBot(
 
     private fun getClosestEmptyCornerOrNull(): Int? {
         val field = game.getField()
-        if (field[0][0].state == GameCellState.EMPTY) return cellsPositionToIndex[0 to 0]
-        if (field[0][2].state == GameCellState.EMPTY) return cellsPositionToIndex[0 to 2]
-        if (field[2][0].state == GameCellState.EMPTY) return cellsPositionToIndex[2 to 0]
-        if (field[2][2].state == GameCellState.EMPTY) return cellsPositionToIndex[2 to 2]
+        if (field[0][0].state == GameCellState.EMPTY) return positionIntoIndex(0 to 0, field.size)
+        if (field[0][2].state == GameCellState.EMPTY) return positionIntoIndex(0 to 2, field.size)
+        if (field[2][0].state == GameCellState.EMPTY) return positionIntoIndex(2 to 0, field.size)
+        if (field[2][2].state == GameCellState.EMPTY) return positionIntoIndex(2 to 2, field.size)
         return null
     }
 
@@ -90,67 +96,93 @@ class GameBot(
         if (field[1][1].state == playerToCellState(botPlayer)) {
             if (field[0][0].state == playerCellState && field[2][1].state == playerCellState) {
                 if (field[1][0].state == GameCellState.EMPTY) {
-                    return cellsPositionToIndex[1 to 0]
+                    return positionIntoIndex(1 to 0, field.size)
                 }
             }
             if (field[0][0].state == playerCellState && field[1][2].state == playerCellState) {
                 if (field[0][1].state == GameCellState.EMPTY) {
-                    return cellsPositionToIndex[0 to 1]
+                    return positionIntoIndex(0 to 1, field.size)
                 }
             }
             if (field[2][0].state == playerCellState && field[1][2].state == playerCellState) {
                 if (field[2][1].state == GameCellState.EMPTY) {
-                    return cellsPositionToIndex[2 to 1]
+                    return positionIntoIndex(2 to 1, field.size)
                 }
             }
             if (field[0][1].state == playerCellState && field[2][2].state == playerCellState) {
                 if (field[1][2].state == GameCellState.EMPTY) {
-                    return cellsPositionToIndex[1 to 2]
+                    return positionIntoIndex(1 to 2, field.size)
                 }
             }
         }
         return null
     }
 
+    //TODO
+    //TODO
+    //TODO
+
+    private fun generateWinRows(checkSize: Int, cellStateToCheck: GameCellState): Array<Array<GameCell>> {
+        var winRows: Array<Array<GameCell>> = arrayOf()
+        for (i in 0 until checkSize) {
+            winRows = winRows.plusElement(
+                Array(checkSize) { index ->
+                    if (index == i) {
+                        GameCell(GameCellState.EMPTY)
+                    } else {
+                        GameCell(cellStateToCheck)
+                    }
+                }
+            )
+        }
+        return winRows
+    }
+
     private fun getIndexToWinOrNull(playerToCheck: Player): Int? {
         val field = game.getField()
+        //Game have 2 modes 3x3 and 5x5 with 20x20 field
+        val checkSize = gameModeToInt(game.getMode())
         val cellStateToCheck: GameCellState = playerToCellState(playerToCheck)
-        val firstWInRow = arrayOf(
-            GameCell(GameCellState.EMPTY),
-            GameCell(cellStateToCheck),
-            GameCell(cellStateToCheck)
-        )
-        val secondWInRow = arrayOf(
-            GameCell(cellStateToCheck),
-            GameCell(GameCellState.EMPTY),
-            GameCell(cellStateToCheck)
-        )
-        val thirdWInRow = arrayOf(
-            GameCell(cellStateToCheck),
-            GameCell(cellStateToCheck),
-            GameCell(GameCellState.EMPTY)
-        )
+        val winRows = generateWinRows(checkSize, cellStateToCheck)
         //Checking rows and columns
-        for (row in 0..2) {
-            //Check row
-            if (field[row].contentEquals(firstWInRow)) return cellsPositionToIndex[row to 0]
-            if (field[row].contentEquals(secondWInRow)) return cellsPositionToIndex[row to 1]
-            if (field[row].contentEquals(thirdWInRow)) return cellsPositionToIndex[row to 2]
-            //Check column
-            if (arrayOf(field[0][row], field[1][row], field[2][row]).contentEquals(firstWInRow)) return cellsPositionToIndex[0 to row]
-            if (arrayOf(field[0][row], field[1][row], field[2][row]).contentEquals(secondWInRow)) return cellsPositionToIndex[1 to row]
-            if (arrayOf(field[0][row], field[1][row], field[2][row]).contentEquals(thirdWInRow)) return cellsPositionToIndex[2 to row]
+        for (rowIndex in field.indices) {
+            for (winRowIndex in winRows.indices) {
+                //Check row
+                if (field[rowIndex].contains(winRows[winRowIndex])) {
+                    return positionIntoIndex(rowIndex to winRowIndex, field.size)
+                }
+                //Check column
+                if (Array(field.size) { columnIndex ->
+                        field[columnIndex][rowIndex]
+                    }.contains(winRows[winRowIndex])) {
+                    return positionIntoIndex(winRowIndex to rowIndex, field.size)
+                }
+            }
         }
         //Checking diagonals
-        //first
-        if (arrayOf(field[0][0], field[1][1], field[2][2]).contentEquals(firstWInRow)) return cellsPositionToIndex[0 to 0]
-        if (arrayOf(field[0][0], field[1][1], field[2][2]).contentEquals(secondWInRow)) return cellsPositionToIndex[1 to 1]
-        if (arrayOf(field[0][0], field[1][1], field[2][2]).contentEquals(thirdWInRow)) return cellsPositionToIndex[2 to 2]
-        //second
-        if (arrayOf(field[0][2], field[1][1], field[2][0]).contentEquals(firstWInRow)) return cellsPositionToIndex[0 to 2]
-        if (arrayOf(field[0][2], field[1][1], field[2][0]).contentEquals(secondWInRow)) return cellsPositionToIndex[1 to 1]
-        if (arrayOf(field[0][2], field[1][1], field[2][0]).contentEquals(thirdWInRow)) return cellsPositionToIndex[2 to 0]
-        //If no three in a row, then return -1
+        //From top to bottom
+        val firstDiag: Array<GameCell> = Array(field.size) { index ->
+            field[index][index]
+        }
+        //From bottom to top
+        val secondDiag: Array<GameCell> = emptyArray()
+        for (rowIndex in field.indices.reversed()) {
+            for (columnIndex in field.indices) {
+                secondDiag.plusElement(field[rowIndex][columnIndex])
+            }
+        }
+        for (winRowIndex in winRows.indices) {
+            //first
+            if (firstDiag.contains(winRows[winRowIndex])) {
+                val winPosition = firstDiag.containsStartAt(winRows[winRowIndex])!! + winRowIndex
+                return positionIntoIndex(winPosition to winPosition, field.size)
+            }
+            //second
+            if (secondDiag.contains(winRows[winRowIndex])) {
+                val winPosition = secondDiag.containsStartAt(winRows[winRowIndex])!! + winRowIndex
+                return positionIntoIndex(winPosition to winPosition, field.size)
+            }
+        }
         return null
     }
 }

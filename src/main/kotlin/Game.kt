@@ -1,14 +1,17 @@
-import GameData.Companion.cellsIndexToPosition
+import GameData.Companion.indexIntoPosition
 import GameData.Companion.playerToCellState
 import GameData.Companion.standard_game_field
+import GameData.Companion.switchPlayer
 import GameData.GameCellState
 import GameData.GameState
 import GameData.GameCell
+import GameData.GameMode
 import GameData.Player
 
 class Game(
     private var field: Array<Array<GameCell>> = standard_game_field,
     private var state: GameState = GameState.GAME,
+    private var mode: GameMode = GameMode.THREE_TO_THREE,
     private var currentPlayer: Player = Player.X
 ) {
     init {
@@ -17,37 +20,39 @@ class Game(
 
     fun getField() = field
     fun getState() = state
+    fun getMode() = mode
     fun getCurrentPlayer() = currentPlayer
 
     fun reStart() {
         field = standard_game_field
         state = GameState.GAME
+        mode = GameMode.THREE_TO_THREE
         currentPlayer = Player.X
     }
 
+    //TODO
+    //TODO scalability,
+    // check different by mode
+
     fun makeTurn(cellIndex: Int): Boolean {
-        if (cellIndex in cellsIndexToPosition.keys) {
-            cellsIndexToPosition[cellIndex]?.let { position ->
-                val row = position.first
-                val column = position.second
-                //Acting if cell is EMPTY
-                return if (field[row][column].state == GameCellState.EMPTY && state == GameState.GAME) {
-                    println("onTurn: cellIndex: $cellIndex, currentPlayer: \"${currentPlayer}\"")
-                    // Saving move
-                    field[row][column].state = playerToCellState(currentPlayer)
-                    // Switching current player
-                    currentPlayer = if (currentPlayer == Player.X) Player.O else Player.X
-                    updateGameState()
-                    true
-                } else {
-                    false
-                }
+        if (cellIndex in 0 until field.size * field.size) {
+            val (row, column) = indexIntoPosition(cellIndex, field.size)
+            //Acting if cell is EMPTY and game active
+            return if (field[row][column].state == GameCellState.EMPTY && state == GameState.GAME) {
+                println("onTurn: cellIndex: $cellIndex, currentPlayer: \"${currentPlayer}\"")
+                // Saving move
+                field[row][column].state = playerToCellState(currentPlayer)
+                // Switching current player
+                currentPlayer = switchPlayer(currentPlayer)
+                updateGameState()
+                true
+            } else {
+                false
             }
         } else {
-            println("Make turn: $cellIndex out of bound 0..8")
+            println("Make turn: $cellIndex out of bound ${0 until field.size * field.size}")
             return false
         }
-        return false
     }
 
     private fun hasThreeInRow(cellToCheck: GameCellState): Boolean {
@@ -78,6 +83,10 @@ class Game(
         return false
     }
 
+    //TODO
+    //TODO
+    //TODO
+
     private fun updateGameState() {
         //Checking X or O win
         val xWinState = hasThreeInRow(GameCellState.CROSS)
@@ -85,8 +94,8 @@ class Game(
         println("X WINS: $xWinState, O WINS: $oWinState")
         //Checking isFull state
         var isFull = true
-        for (row in 0..2) {
-            if (field[row].contains(GameCell())) {
+        for (row in field) {
+            if (row.contains(GameCell())) {
                 isFull = false
                 break
             }
