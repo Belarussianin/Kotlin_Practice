@@ -27,6 +27,7 @@ fun Array<*>.contains(other: Array<*>): Boolean {
         for (arrIndex2 in other.indices) {
             if (this[arrIndex + arrIndex2] != other[arrIndex2]) {
                 contains = false
+                break
             }
         }
         if (contains) return true else contains = true
@@ -40,6 +41,7 @@ fun Array<*>.containsStartAt(other: Array<*>): Int? {
         for (arrIndex2 in other.indices) {
             if (this[arrIndex + arrIndex2] != other[arrIndex2]) {
                 contains = false
+                break
             }
         }
         if (contains) {
