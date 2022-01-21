@@ -1,12 +1,14 @@
-import GameBotData.Mode
-import GameData.Companion.gameModeToInt
-import GameData.Companion.playerToCellState
-import GameData.Companion.positionIntoIndex
-import GameData.Companion.switchPlayer
-import GameData.GameCellState
-import GameData.GameCell
-import GameData.GameMode
-import GameData.Player
+package gameCrossZero
+
+import gameCrossZero.GameBotData.Mode
+import gameCrossZero.GameData.Companion.gameModeToInt
+import gameCrossZero.GameData.Companion.playerToCellState
+import gameCrossZero.GameData.Companion.positionIntoIndex
+import gameCrossZero.GameData.Companion.switchPlayer
+import gameCrossZero.GameData.GameCellState
+import gameCrossZero.GameData.GameCell
+import gameCrossZero.GameData.GameMode
+import gameCrossZero.GameData.Player
 
 class GameBot(
     private val game: Game,
@@ -143,7 +145,7 @@ class GameBot(
     private fun getIndexToWinOrNull(playerToCheck: Player): Int? {
         val field = game.getField()
         val cellStateToCheck: GameCellState = playerToCellState(playerToCheck)
-        //Game have 2 modes to check 3x3 and 5x5
+        //GameCrossZero.Game have 2 modes to check 3x3 and 5x5
         val winRows = generateWinRows(gameModeToInt(game.getMode()), cellStateToCheck)
         //Checking rows and columns
         for (rowIndex in field.indices) {

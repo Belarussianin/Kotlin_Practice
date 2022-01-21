@@ -1,16 +1,18 @@
+package gameCrossZero
+
 fun Array<Array<GameData.GameCell>>.print() {
-    val ANSI_GREEN = "\u001B[32m"
-    val ANSI_RED = "\u001B[31m"
-    val ANSI_RESET = "\u001B[0m"
+    val ansiGreen = "\u001B[32m"
+    val ansiRed = "\u001B[31m"
+    val ansiResetColor = "\u001B[0m"
     println("Current field: ")
     this.forEach { row ->
         row.forEach { cell ->
             when(cell.state) {
                 GameData.GameCellState.CROSS -> {
-                    print(ANSI_RED + "${cell.state} " + ANSI_RESET)
+                    print(ansiRed + "${cell.state} " + ansiResetColor)
                 }
                 GameData.GameCellState.CIRCLE -> {
-                    print(ANSI_GREEN + "${cell.state} " + ANSI_RESET)
+                    print(ansiGreen + "${cell.state} " + ansiResetColor)
                 }
                 else -> {
                     print("${cell.state} ")

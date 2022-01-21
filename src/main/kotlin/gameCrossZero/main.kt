@@ -1,15 +1,17 @@
-import GameBotData.Mode
-import GameData.Companion.indexIntoPosition
-import GameData.Companion.makeEmptyGameField
-import GameData.Companion.positionIntoIndex
-import GameData.Player
+package gameCrossZero
+
+import gameCrossZero.GameBotData.Mode
+import gameCrossZero.GameData.Companion.indexIntoPosition
+import gameCrossZero.GameData.Companion.makeEmptyGameField
+import gameCrossZero.GameData.Companion.positionIntoIndex
+import gameCrossZero.GameData.Player
 import java.util.Scanner
 
 val input = Scanner(System.`in`)
 
 fun main() {
-    //startGameWithBot()
-    //test()
+    //GameCrossZero.startGameWithBot()
+    //GameCrossZero.test()
     testGame()
 }
 

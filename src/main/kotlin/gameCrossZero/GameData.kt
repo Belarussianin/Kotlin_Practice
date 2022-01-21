@@ -1,3 +1,5 @@
+package gameCrossZero
+
 sealed class GameData {
     enum class Player {
         O, X

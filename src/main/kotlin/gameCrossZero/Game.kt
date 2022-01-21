@@ -1,13 +1,15 @@
-import GameData.Companion.gameModeToInt
-import GameData.Companion.indexIntoPosition
-import GameData.Companion.playerToCellState
-import GameData.Companion.standard_game_field
-import GameData.Companion.switchPlayer
-import GameData.GameCellState
-import GameData.GameState
-import GameData.GameCell
-import GameData.GameMode
-import GameData.Player
+package gameCrossZero
+
+import gameCrossZero.GameData.Companion.gameModeToInt
+import gameCrossZero.GameData.Companion.indexIntoPosition
+import gameCrossZero.GameData.Companion.playerToCellState
+import gameCrossZero.GameData.Companion.standard_game_field
+import gameCrossZero.GameData.Companion.switchPlayer
+import gameCrossZero.GameData.GameCellState
+import gameCrossZero.GameData.GameState
+import gameCrossZero.GameData.GameCell
+import gameCrossZero.GameData.GameMode
+import gameCrossZero.GameData.Player
 
 class Game(
     private val field: Array<Array<GameCell>> = standard_game_field,
